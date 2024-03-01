@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pomodoro_app/tela_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TelaInicial extends StatefulWidget {
@@ -16,6 +17,9 @@ class _TelaInicialState extends State<TelaInicial>
   bool isPlaying = false;
   int _counter = 0;
   bool counterJaIncrementado = false;
+  bool isSessaoFoco = true;
+  late int tempoSessao = 25;
+  late int tempoDescanso = 5;
 
   String get countText {
     Duration count = controller.duration! * controller.value;
@@ -42,21 +46,94 @@ class _TelaInicialState extends State<TelaInicial>
     });
   }
 
+  Future<void> _carregarConfiguracoes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      tempoSessao = prefs.getInt('sessionDuration') ?? 25;
+      tempoDescanso = prefs.getInt('breakDuration') ?? 5;
+    });
+  }
+
+  Future<void> _salvarConfiguracoes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('sessionDuration', tempoSessao);
+    await prefs.setInt('breakDuration', tempoDescanso);
+    setState(() {});
+  }
+
   void notify() {
     if ((countText == '00:00') && !counterJaIncrementado) {
-      _incrementCounter();
+      if (isSessaoFoco) {
+        _incrementCounter();
+      }
       counterJaIncrementado = true;
+      isSessaoFoco = !isSessaoFoco;
+      //_startTimer();
+      _restartTimer();
     } else if (countText != '00:00') {
       counterJaIncrementado = false;
     }
   }
 
+  Widget _buildTimerLabel() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      child: isSessaoFoco
+          ? Text(
+              'Foco',
+              style: TextStyle(
+                color: Colors.green.shade900,
+                fontWeight: FontWeight.bold,
+                fontSize: 40,
+              ),
+            )
+          : Text(
+              'Descanso',
+              style: TextStyle(
+                color: Colors.blue.shade900,
+                fontWeight: FontWeight.bold,
+                fontSize: 40,
+              ),
+            ),
+    );
+  }
+
+  void _startTimer() {
+    setState(() {
+      if (isSessaoFoco) {
+        controller.duration = Duration(minutes: tempoSessao);
+      } else {
+        controller.duration = Duration(minutes: tempoDescanso);
+      }
+      controller.reverse(from: 1.0);
+      isPlaying = true;
+    });
+  }
+
+  void _restartTimer() {
+    setState(() {
+      if (isSessaoFoco) {
+        controller.duration = Duration(minutes: tempoSessao);
+      } else {
+        controller.duration = Duration(minutes: tempoDescanso);
+      }
+      controller.reset();
+      //_startTimer();
+    });
+  }
+
   @override
   void initState() {
     _leContador();
+    _carregarConfiguracoes().then((value) {
+      _restartTimer();
+    });
     super.initState();
-    controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 5));
+    controller = AnimationController(
+        vsync: this,
+        duration: isSessaoFoco
+            ? Duration(minutes: tempoSessao)
+            : Duration(seconds: tempoDescanso));
     controller.addListener(() {
       notify();
       if (controller.isAnimating) {
@@ -87,10 +164,28 @@ class _TelaInicialState extends State<TelaInicial>
         actions: [
           IconButton(
               onPressed: () {
+                if (controller.isAnimating) {
+                  controller.stop();
+                  setState(() {
+                    isPlaying = false;
+                  });
+                }
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const TelaConfig()));
+                        builder: (context) => TelaConfig(
+                              tempoSessao: tempoSessao,
+                              tempoDescanso: tempoDescanso,
+                              onSave:
+                                  (int newTempoSessao, int newTempoDescanso) {
+                                setState(() {
+                                  tempoSessao = newTempoSessao;
+                                  tempoDescanso = newTempoDescanso;
+                                  _salvarConfiguracoes();
+                                });
+                                _restartTimer();
+                              },
+                            )));
               },
               icon: const Icon(
                 Icons.settings,
@@ -107,6 +202,9 @@ class _TelaInicialState extends State<TelaInicial>
                 width: 200,
                 height: 200,
                 child: CircularProgressIndicator(
+                  color: isSessaoFoco
+                      ? Colors.green.shade900
+                      : Colors.blue.shade900,
                   backgroundColor: Colors.grey.shade400,
                   value: progress,
                   strokeWidth: 10,
@@ -120,13 +218,7 @@ class _TelaInicialState extends State<TelaInicial>
               ),
             ]),
             SizedBox(
-              child: Text(
-                "Foco",
-                style: TextStyle(
-                    color: Colors.green.shade900,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 40),
-              ),
+              child: _buildTimerLabel(),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -139,7 +231,10 @@ class _TelaInicialState extends State<TelaInicial>
                         isPlaying = true;
                       });
                     },
-                    icon: const Icon(Icons.play_arrow)),
+                    icon: const Icon(
+                      Icons.play_circle_outline,
+                      size: 50,
+                    )),
                 IconButton(
                     onPressed: () {
                       if (controller.isAnimating) {
@@ -149,7 +244,10 @@ class _TelaInicialState extends State<TelaInicial>
                         });
                       }
                     },
-                    icon: const Icon(Icons.pause)),
+                    icon: const Icon(
+                      Icons.pause_circle_outline,
+                      size: 50,
+                    )),
                 IconButton(
                     onPressed: () {
                       controller.reset();
@@ -157,7 +255,10 @@ class _TelaInicialState extends State<TelaInicial>
                         isPlaying = false;
                       });
                     },
-                    icon: const Icon(Icons.restore))
+                    icon: const Icon(
+                      Icons.restore,
+                      size: 50,
+                    ))
               ],
             ),
             Container(
@@ -170,36 +271,12 @@ class _TelaInicialState extends State<TelaInicial>
                         spreadRadius: 3)
                   ]),
               child: Text(
-                'Você completou $_counter sessões',
+                _counter == 1
+                    ? 'Você já completou $_counter sessão de foco'
+                    : 'Você já completou $_counter sessões de foco',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TelaConfig extends StatelessWidget {
-  const TelaConfig({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: const Padding(
-        padding: EdgeInsets.all(15.0),
-        child: CustomScrollView(
-          scrollDirection: Axis.vertical,
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [],
-              ),
-            ),
           ],
         ),
       ),
