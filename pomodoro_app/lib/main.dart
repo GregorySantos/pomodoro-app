@@ -11,6 +11,8 @@ Sobre o aplicativo:
   # Os tempos de cada ciclo podem ser ajustados individualmente na tela de configurações;
   # Mantém na tela inicial um registro de quantas sessões de foco já foram completadas;
   # As configurações e o registro de sessões completadas são persistentes (usando SharedPreferences).
+  # BUG CONHECIDO: Devido a restrições do browser, o alerta sonoro não funciona se o aplicativo 
+    estiver em segundo plano (testado no Chrome e no Edge).
 */
 
 void main() {
