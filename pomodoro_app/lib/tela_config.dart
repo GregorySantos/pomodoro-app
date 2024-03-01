@@ -61,11 +61,7 @@ class _TelaConfigState extends State<TelaConfig> {
               max: 60,
               onChanged: (value) {
                 setState(() {
-                  if (value == 60) {
-                    _tempoSessao = value.toInt() - 1;
-                  } else {
-                    _tempoSessao = value.toInt();
-                  }
+                  _tempoSessao = value.toInt();
                 });
               },
               label: 'Duração da Sessão: $_tempoSessao minutos',
@@ -84,11 +80,7 @@ class _TelaConfigState extends State<TelaConfig> {
               max: 60,
               onChanged: (value) {
                 setState(() {
-                  if (value == 60) {
-                    _tempoDescanso = value.toInt() - 1;
-                  } else {
-                    _tempoDescanso = value.toInt();
-                  }
+                  _tempoDescanso = value.toInt();
                 });
               },
               label: 'Duração do Descanso: $_tempoDescanso minutos',
