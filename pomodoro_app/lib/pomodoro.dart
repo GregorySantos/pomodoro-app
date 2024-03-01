@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pomodoro_app/tela_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:just_audio/just_audio.dart';
 
 class TelaInicial extends StatefulWidget {
   const TelaInicial({super.key, required this.title});
@@ -20,6 +21,7 @@ class _TelaInicialState extends State<TelaInicial>
   bool isSessaoFoco = true;
   late int tempoSessao = 25;
   late int tempoDescanso = 5;
+  final player = AudioPlayer();
 
   String get countText {
     Duration count = controller.duration! * controller.value;
@@ -66,9 +68,10 @@ class _TelaInicialState extends State<TelaInicial>
       if (isSessaoFoco) {
         _incrementCounter();
       }
+      player.setAsset('assets/assets_audio_ring.wav');
+      player.play();
       counterJaIncrementado = true;
       isSessaoFoco = !isSessaoFoco;
-      //_startTimer();
       _restartTimer();
     } else if (countText != '00:00') {
       counterJaIncrementado = false;
@@ -98,18 +101,6 @@ class _TelaInicialState extends State<TelaInicial>
     );
   }
 
-  void _startTimer() {
-    setState(() {
-      if (isSessaoFoco) {
-        controller.duration = Duration(minutes: tempoSessao);
-      } else {
-        controller.duration = Duration(minutes: tempoDescanso);
-      }
-      controller.reverse(from: 1.0);
-      isPlaying = true;
-    });
-  }
-
   void _restartTimer() {
     setState(() {
       if (isSessaoFoco) {
@@ -118,7 +109,6 @@ class _TelaInicialState extends State<TelaInicial>
         controller.duration = Duration(minutes: tempoDescanso);
       }
       controller.reset();
-      //_startTimer();
     });
   }
 
@@ -152,6 +142,7 @@ class _TelaInicialState extends State<TelaInicial>
   @override
   void dispose() {
     controller.dispose();
+    player.dispose();
     super.dispose();
   }
 

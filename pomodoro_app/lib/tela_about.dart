@@ -20,11 +20,6 @@ class AboutMe extends StatelessWidget {
             ),
             Text("Autor: Gregory Silva Gley Santos"),
             Text("email: gregory.sgsantos@gmail.com"),
-            SizedBox(
-              height: 100,
-            ),
-            Text(
-                "Melhorias a serem feitas:\n Colocar um alerta sonoro quando o timer zerar,\n difícil para versão web.")
           ],
         ),
       ),

@@ -14,7 +14,7 @@ class TelaConfig extends StatefulWidget {
   });
 
   @override
-  _TelaConfigState createState() => _TelaConfigState();
+  State<TelaConfig> createState() => _TelaConfigState();
 }
 
 class _TelaConfigState extends State<TelaConfig> {
