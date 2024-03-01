@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pomodoro_app/tela_about.dart';
 
 class TelaConfig extends StatefulWidget {
   final int tempoSessao;
@@ -31,8 +32,17 @@ class _TelaConfigState extends State<TelaConfig> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text('Configurações')),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Configurações'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const AboutMe()));
+              },
+              icon: const Icon(Icons.info_outline, size: 30))
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
